@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# pitch deck sources (the deck itself lives as a published artifact)
+.deck/

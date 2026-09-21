@@ -1,0 +1,100 @@
+WAHALA
+Track 3 - Safety, Reporting and Protection
+Ugochukwu Odunukwe
+
+Live: https://wahala-beta.vercel.app  (judges can skip the disguise: /?open=1)
+Response desk: https://wahala-beta.vercel.app/responder
+Code: https://github.com/UgoOluwa/Wahala
+
+A prototype for judging. It does not dispatch real help. In a real emergency,
+call 112.
+
+
+WHAT I BUILT AND WHY
+
+Panic apps are loud. They sit on your homescreen with their own name and icon,
+they buzz, and they light up the screen to tell you help is on the way. That
+works for someone taken on a road in Zamfara. It is dangerous for a woman being
+beaten in Lagos, because her husband is holding the phone. For her the
+notification is not the alert. It is what gets her hurt.
+
+So I built Wahala silent by default. It opens as a calculator that actually
+calculates. You type 112 and press equals to get in. There is no account and no
+phone number. Nothing ever rings, buzzes or shows a badge, not even when the
+agency replies. One tap on Leave now erases everything and puts the calculator
+back.
+
+Danger has two speeds, so there are two ways in. If you are in danger now, it
+is one button and no typing, with GPS already running before you press. If you
+are reporting abuse, you can type what happened and who did it, and hold back
+your location if being found would make things worse.
+
+Getting the report out was the hard part. GPS works without internet because it
+uses satellites, so the coordinates always exist and only the sending has to
+wait. Wahala tries three things in order: send it, or open a prefilled SMS if
+there is signal but no data, or hold it on the phone and send it by itself when
+a bar comes back. The whole report fits in 43 characters so one SMS carries it.
+
+Reports go to a named body, and you see which one before you send. Sexual abuse
+goes to Mirabel Centre, WARIF and Lagos DSVA. Kidnapping goes to 112, NSCDC and
+NAPTIP. The desk replies with an ETA, and that reply arrives silently in your
+own language, because a reply you cannot read is not help.
+
+Then two things most tools miss. Every report gives you a four-digit callback
+code. Anyone claiming to be a responder must say it first, because "we got your
+report, come outside" is how people get lured out, and in an abuse case the
+person most likely to send that is the one you reported. And while you wait,
+the app tells you three concrete things to do for your situation, offline, in
+all five languages. You can also save trusted people, kept only on your phone,
+and reach all of them with one SMS. For kidnapping there is a dead-man's switch
+that fires in ten minutes unless you cancel. It is registered on the server the
+moment you arm it, so it still goes out if the phone is taken or dies.
+
+
+SOURCES, AND WHAT I DID NOT DO
+
+One day, so no interviews and no fieldwork. I used no dataset and I quote no
+statistics anywhere, in the app or here, because I could not verify a figure
+properly in the time and I would rather have none than one I had not checked.
+
+The organisations are real and publicly known, but I did not contact any of
+them and none has reviewed this. 112 is the only number I was sure enough to
+publish. Every other hotline is blank and labelled unverified in the app
+itself. The safety advice follows what support services publish widely, but no
+clinician has checked it. On design I looked at Aspire News for the disguise
+idea, and Noonlight, Bright Sky and Hollie Guard for how they handle dispatch.
+I took no code or wording from them.
+
+
+TRUST AND ACCURACY
+
+Real and working: capture, GPS, the offline queue, five languages, the
+disguise, quick exit, the callback code, trusted contacts, the dead-man's
+switch. Simulated but built and in the repo: the response desk. Not connected:
+real dispatch, because no public API exists for it.
+
+Where it cannot do something it says so. A web app cannot send SMS silently, so
+you press send yourself. Cancelling the dead-man's switch after it fires is
+refused instead of quietly accepted, because responders may already be moving.
+A typed reply that cannot be translated arrives labelled as English. The README
+lists the gaps, including one my own feature created: the desk is not behind a
+login yet, so in this prototype anyone opening it could see a callback code.
+
+
+USE OF AI TOOLS
+
+The idea and the product decisions are mine, including the one this is all
+built on. I wrote the code with Claude Code as a pair, and it drafted this
+summary and the deck. The translations are AI-drafted and need a native speaker
+before anyone relies on them, which is the biggest caveat in the project. I did
+not clean up the commit history.
+
+
+WHAT IS NEXT
+
+Verified hotlines are phone calls, not code. A real desk needs one pilot
+partner behind a login. The translations need a native speaker. USSD is the
+only real build left, and it matters most, because the people furthest from
+help have the cheapest phones. None of it is a rewrite. What is already decided
+is the part I care about: that this thing stays quiet even when the news is
+good.
