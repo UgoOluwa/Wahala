@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Chrome } from "@/components/Chrome";
 import { useLocale } from "@/components/LocaleProvider";
 import { getFix, type Fix } from "@/lib/geo";
-import { newRef, type Report } from "@/lib/report";
+import { newCallbackCode, newRef, type Report } from "@/lib/report";
 import { send } from "@/lib/transport";
 
 export default function Immediate() {
@@ -44,6 +44,7 @@ export default function Immediate() {
       accuracy: fix?.accuracy ?? null,
       createdAt: Date.now(),
       replies: [],
+      callbackCode: newCallbackCode(),
     };
 
     const delivery = await send(report);

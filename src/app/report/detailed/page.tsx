@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Chrome } from "@/components/Chrome";
 import { useLocale } from "@/components/LocaleProvider";
 import { getFix } from "@/lib/geo";
-import { INCIDENTS, newRef, type Incident, type Report } from "@/lib/report";
+import { INCIDENTS, newCallbackCode, newRef, type Incident, type Report } from "@/lib/report";
 import { send } from "@/lib/transport";
 import { routeFor } from "@/lib/referrals";
 import type { StringKey } from "@/lib/i18n";
@@ -46,6 +46,7 @@ export default function Detailed() {
       // Stored as a key so the responder desk can render it in its own language.
       when,
       replies: [],
+      callbackCode: newCallbackCode(),
     };
 
     const delivery = await send(report);

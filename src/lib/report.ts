@@ -14,6 +14,8 @@ export type Urgency = "immediate" | "considered";
 
 export interface Reply {
   at: number;
+  /** True only when the responder quoted the reporter's callback code back. */
+  verified: boolean;
   agency: string;
   /**
    * A translation key, so the reply renders in whatever language the reporter
@@ -42,6 +44,13 @@ export interface Report {
   when?: string;
   replies: Reply[];
   acknowledgedAt?: number;
+  /**
+   * A shared secret between the reporter and whoever genuinely picks the report
+   * up. Deliberately never returned over the reporter's polling endpoint: they
+   * already hold it locally, and anyone who can read the reference code off
+   * their screen must not be able to fetch this alongside it.
+   */
+  callbackCode?: string;
 }
 
 export type Delivery = "sent" | "queued" | "sms";
@@ -59,6 +68,12 @@ const INCIDENT_CODE: Record<Incident, string> = {
 const CODE_INCIDENT = Object.fromEntries(
   Object.entries(INCIDENT_CODE).map(([k, v]) => [v, k]),
 ) as Record<string, Incident>;
+
+/** Four digits: short enough to hold in your head at a door, through a window,
+ *  or on a phone call - which is where the verification actually happens. */
+export function newCallbackCode(): string {
+  return String(Math.floor(1000 + Math.random() * 9000));
+}
 
 export function newRef(): string {
   // Six base36 characters is enough to be unambiguous across a demo and short

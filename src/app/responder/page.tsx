@@ -31,6 +31,8 @@ export default function Responder() {
   const [messageKey, setMessageKey] = useState<StringKey | null>(CANNED[0].key);
   const [custom, setCustom] = useState("");
   const [eta, setEta] = useState<number | "">(CANNED[0].eta);
+  const [code, setCode] = useState("");
+  const [revealed, setRevealed] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
@@ -56,11 +58,14 @@ export default function Responder() {
         messageKey,
         message: messageKey ? t("en", messageKey) : custom,
         etaMinutes: eta === "" ? null : Number(eta),
+        code,
       }),
     });
     await load();
     setBusy(false);
     setActive(null);
+    setCode("");
+    setRevealed(null);
   }
 
   const open = reports.filter((r) => r.replies.length === 0);
@@ -158,6 +163,13 @@ export default function Responder() {
                       <p className="text-[15px]">
                         {reply.messageKey ? t("en", reply.messageKey) : reply.message}
                       </p>
+                      <p
+                        className={`text-[12px] ${reply.verified ? "text-safe" : "text-danger"}`}
+                      >
+                        {reply.verified
+                          ? "Verified — callback code quoted correctly"
+                          : "Unverified — reporter is warned not to trust this"}
+                      </p>
                       {reply.etaMinutes !== null && (
                         <p className="text-sm text-safe">ETA {reply.etaMinutes} min</p>
                       )}
@@ -222,6 +234,33 @@ export default function Responder() {
                           )}
                         </>
                       )}
+                      <div className="flex flex-wrap items-end gap-3 border-t border-line pt-3">
+                        <label className="flex flex-col gap-1 text-[13px] text-muted">
+                          Callback code
+                          <input
+                            value={code}
+                            onChange={(e) => setCode(e.target.value)}
+                            placeholder="4 digits"
+                            inputMode="numeric"
+                            maxLength={4}
+                            className="w-28 rounded-lg border border-line bg-surface px-3 py-2 font-mono text-fg focus:outline-none"
+                          />
+                        </label>
+                        <button
+                          onClick={() => setRevealed(r.callbackCode ?? "none")}
+                          className="rounded-lg border border-line px-3 py-2 text-[13px] text-muted hover:text-fg"
+                        >
+                          Reveal from case file
+                        </button>
+                        {revealed && (
+                          <p className="text-[13px] text-muted">
+                            Code is <span className="font-mono text-fg">{revealed}</span>. In a
+                            real deployment this needs an authenticated desk; here it stands in
+                            for one. Send a wrong code to see what the reporter sees.
+                          </p>
+                        )}
+                      </div>
+
                       <div className="flex flex-wrap items-center gap-3">
                         <label className="flex items-center gap-2 text-sm text-muted">
                           ETA (minutes)

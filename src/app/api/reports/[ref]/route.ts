@@ -7,5 +7,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ ref: st
   const { ref } = await params;
   const report = await store.get(ref);
   if (!report) return NextResponse.json({ error: "not found" }, { status: 404 });
-  return NextResponse.json({ report });
+
+  // The reporter already has their callback code locally. Returning it here
+  // would mean anyone who read the reference code off their screen could fetch
+  // the secret that is supposed to distinguish a real responder from them.
+  const { callbackCode: _withheld, ...safe } = report;
+  return NextResponse.json({ report: safe });
 }
