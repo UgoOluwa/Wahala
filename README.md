@@ -76,6 +76,20 @@ conserve battery, keep the phone hidden, do not fight to keep it — the report
 has already gone. After a sexual assault: you can get medical care without
 making a police report first.
 
+**It can reach your own people, not just an agency.** In much of Nigeria a
+neighbour arrives before a unit does, so trusted contacts are a first-class
+destination: one SMS to all of them at once, carrying a map link a
+non-technical relative can open. The list never leaves the phone — a server
+holding the names and numbers of the people someone trusts would be exactly the
+map an abuser or a trafficker would want — and quick exit erases it.
+
+**It still fires if the phone is taken.** For a kidnapping there is a
+dead-man's switch: send in ten minutes unless I cancel. Arming registers the
+report with the server immediately, so firing is a deadline the server
+evaluates rather than a timer on a device that may be smashed or flat by then.
+Cancelling after the deadline is refused rather than quietly accepted, because
+responders may already be moving.
+
 **It closes the loop.** A responder acknowledges with an ETA: *"We have your
 location. A unit is on the way. ~25 minutes."* That reply renders in the
 reporter's own language, silently. If nobody arrives by the ETA, the screen
@@ -147,6 +161,8 @@ trusting.
 | Report capture, GPS, encoding, offline queue | **Real** |
 | Offline shell — verified on the deployment | **Real** |
 | Callback-code verification | **Real** |
+| Trusted contacts, device-only | **Real** |
+| Dead-man's switch | **Real** |
 | Five-language interface | **Real** |
 | Calculator disguise, quick exit, silent updates | **Real** |
 | Referral routing logic | **Real** |
@@ -173,12 +189,28 @@ Open **http://localhost:3100**. You need two windows to see the point:
 
 Judges can skip the unlock with `/?open=1`.
 
+### Configuration
+
+`NEXT_PUBLIC_SMS_SHORTCODE` sets where the offline SMS fallback is addressed.
+Unset, it is **112** — Nigeria's real emergency line, which is correct for a
+real deployment and wrong for anything people will tap to try out. Point it at
+a phone you own before demoing. The interface shows which number it is
+addressing, so nobody sends blind.
+
+See `.env.example` for the full list.
+
 ### Storage
 
-In-memory by default, which is fine for one process. Set
-`UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` and it uses Upstash
-instead — a serverless cold start between filing a report and opening the desk
-would otherwise lose it.
+In-memory by default, which is fine for one local process and wrong for any
+serverless deployment: a report filed on one instance is invisible to the
+response desk running on another, so the loop silently breaks in the one place
+a judge would click.
+
+Two remote backends, picked by whichever credentials are present. `REDIS_URL`
+for anything speaking the Redis protocol — this is what Vercel's marketplace
+provisions, and what the live deployment runs on. Or `UPSTASH_REDIS_REST_URL`
+and `UPSTASH_REDIS_REST_TOKEN` for Upstash over HTTP, which suits serverless
+better where it is available.
 
 ---
 
@@ -223,10 +255,8 @@ labelled as English — better than silently shipping something unreadable.
 
 Named rather than hidden, because they are the roadmap:
 
-- **Trusted contacts.** In much of Nigeria a neighbour arrives before an agency
-  does. Personal contacts should be a first-class destination.
-- **No dead-man's switch.** "Send automatically if I do not cancel in ten
-  minutes" is the right primitive for the kidnapping case.
+- **USSD for feature phones.** The people furthest from help are also furthest
+  from a smartphone. This is the one substantial build still outstanding.
 - **Accessibility.** Touch targets and contrast were designed for, but no
   screen-reader pass has been done.
 - **The desk is not authenticated.** It stands in for an agency system, so in
