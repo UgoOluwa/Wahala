@@ -1,36 +1,227 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Wahala
 
-## Getting Started
+**A silent way to report violence, threats and abuse in Nigeria — and to see help actually coming.**
 
-First, run the development server:
+Built for the Andela × Open Society Foundations invention sprint, track 3:
+*Safety, Reporting & Protection*.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+> **This is a prototype built for judging. It does not dispatch real help.**
+> In a real emergency in Nigeria, call **112**.
+
+---
+
+## The problem
+
+Two people need to report danger, and they need opposite things.
+
+Someone taken off a road in Zamfara has a phone in their pocket, one bar of
+signal, and seconds. They need the alert to be *fast* and to *reach someone*.
+
+Someone being beaten at home has all the time in the world and none of the
+safety. A buzz on the lockscreen while he is holding her phone is not a
+notification — it is the thing that gets her hurt. She needs the alert to be
+*invisible*.
+
+Most panic-button apps are built for the first person. They are loud, they are
+proud of their icon, and they light up your screen to tell you help is coming.
+For the second person that behaviour is the danger.
+
+Wahala is built for both, and it treats silence as the default.
+
+---
+
+## What it does
+
+**One app, two speeds.**
+
+| | Immediate danger | Considered report |
+|---|---|---|
+| Input | One tap. No typing. | What happened, who is involved, when |
+| GPS | Starts on screen open, sent with the tap | Optional — can be withheld |
+| For | Attack in progress, kidnapping | Abuse you are reporting, not fleeing |
+
+**It is quiet on purpose.** No push notifications, no sound, no vibration, no
+badge. Not even when the agency replies. The status page updates itself and the
+reply is simply *there* when the person next looks. This is the core design
+commitment, and everything else follows from it.
+
+**It wears a disguise.** The app opens as a working calculator. The tab title,
+the install name and the icon all say "Calculator". Typing `112` and pressing
+`=` opens the real thing. Anyone scrolling the phone's recent-apps list sees
+arithmetic.
+
+**Quick exit.** One tap wipes the outbox, clears storage and replaces the page —
+back button included — with an ordinary news site.
+
+**It speaks five languages.** English, Nigerian Pidgin, Yorùbá, Igbo and Hausa —
+every reporter-facing string, including the agency's reply.
+
+**It closes the loop.** A responder acknowledges with an ETA: *"We have your
+location. A unit is on the way. ~25 minutes."* That reply renders in the
+reporter's own language, silently. If nobody arrives by the ETA, the screen
+tells them to call 112 and quote their reference code.
+
+---
+
+## The part that took the most thought: getting a report out on a bad network
+
+GPS does not need the internet. The chip talks to satellites, so coordinates are
+available with the data connection completely dead. Only *transmission* has to
+wait. That asymmetry is what the whole transport design is built on.
+
+Three tiers, tried in order:
+
+| Tier | Condition | What happens |
+|---|---|---|
+| 1 | Data available | Straight to the response desk |
+| 2 | GSM signal, no data | One tap opens a prefilled SMS to 112 |
+| 3 | No signal at all | Held in IndexedDB, flushed the moment a bar returns |
+
+For tier 2 the entire report is encoded into a single SMS:
+
+```
+HLP1|s|ha|ci|11.99000,8.53000|m|1t8k3f|HAUSA1
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Forty-three characters. Positional and abbreviated, because on a network that
+may only manage one message, the difference between 140 characters and 200 is
+the difference between arriving and not.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**An honest limit:** a web app cannot send an SMS silently in the background.
+Android and iOS do not grant that to browsers. So tier 2 opens the messaging app
+with the message already written and the person presses send. Anyone
+demonstrating otherwise is faking it.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Pathways, not "the authorities"
 
-To learn more about Next.js, take a look at the following resources:
+The track asks for a *clear pathway to timely support*, so a report routes to a
+named body with a known remit rather than a vague agency.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Incident | Routed to |
+|---|---|
+| Sexual abuse | Mirabel Centre → WARIF → Lagos DSVA → 112 |
+| Kidnapping | 112 → NSCDC → NAPTIP |
+| Physical violence | 112 → Lagos DSVA → NSCDC |
+| Being followed | 112 → Lagos DSVA |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The destination is shown **before** sending, not after. That is the difference
+between shouting into the void and a pathway the person can see.
 
-## Deploy on Vercel
+**Only 112 carries a phone number in this prototype.** Every other hotline is
+deliberately left blank and labelled *"not verified"*. Publishing a digit I
+could not confirm, in an app someone opens during an assault, is the one failure
+mode that costs a person something real. Those numbers need collecting from each
+organisation directly before this goes near a user.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## What is real and what is simulated
+
+Being straight about this, because a demo that blurs the line is not worth
+trusting.
+
+| | Status |
+|---|---|
+| Report capture, GPS, encoding, offline queue | **Real** |
+| Five-language interface | **Real** |
+| Calculator disguise, quick exit, silent updates | **Real** |
+| Referral routing logic | **Real** |
+| The response desk | **Simulated** — built, labelled, in this repo |
+| Dispatch to NPF / NEMA / NSCDC | **Not connected.** No public API exists |
+| Hotline numbers other than 112 | **Unverified**, shown as such |
+| Translations | **AI-drafted**, pending native-speaker review |
+
+---
+
+## Running it
+
+```bash
+npm install
+npm run dev
+```
+
+Open **http://localhost:3100**. You need two windows to see the point:
+
+1. **http://localhost:3100** — type `112`, press `=`. File a report.
+2. **http://localhost:3100/responder** — it appears within 4 seconds.
+   Acknowledge it with an ETA.
+3. Back in window 1 — the reply arrives silently, in the reporter's language.
+
+Judges can skip the unlock with `/?open=1`.
+
+### Storage
+
+In-memory by default, which is fine for one process. Set
+`UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` and it uses Upstash
+instead — a serverless cold start between filing a report and opening the desk
+would otherwise lose it.
+
+---
+
+## Architecture
+
+```
+src/
+  app/
+    page.tsx              calculator disguise — the default entry
+    report/               triage → immediate | detailed
+    status/[ref]/         the silent thread, polled every 5s
+    responder/            simulated agency desk
+    api/reports/          create, list, fetch, reply
+  lib/
+    i18n.ts               71 keys × 5 languages, with interpolation
+    report.ts             model + the 160-character SMS codec
+    transport.ts          the three-tier ladder
+    queue.ts              IndexedDB outbox
+    geo.ts                GPS capture with a hard timeout
+    referrals.ts          incident → named Nigerian body
+    store.ts              in-memory / Upstash adapter
+  components/
+```
+
+Next.js 16 (App Router), TypeScript, Tailwind v4. No UI framework, no state
+library — the app is small and the dependencies are a liability, not an asset,
+in something meant to load on 2G.
+
+### Two decisions worth explaining
+
+**Dark is a safety property, not a style.** A lit screen in a dark room is a
+tell. The palette emits as little light as possible while staying above WCAG AA.
+
+**Replies travel as translation keys, not prose.** The desk works in English;
+the person in danger may not. Rendering happens on their device, in their
+language. A responder who types freehand gets a warning, and the reply arrives
+labelled as English — better than silently shipping something unreadable.
+
+---
+
+## Known gaps
+
+Named rather than hidden, because they are the roadmap:
+
+- **Responder authenticity.** A reporter cannot yet verify that a reply is
+  genuine. For a tool in this category that is a real gap — a fake "we are
+  outside" could lure someone out.
+- **Trusted contacts.** In much of Nigeria a neighbour arrives before an agency
+  does. Personal contacts should be a first-class destination.
+- **While-you-wait guidance.** The track says *protection*, and right now the
+  app reports but does not advise.
+- **No dead-man's switch.** "Send automatically if I do not cancel in ten
+  minutes" is the right primitive for the kidnapping case.
+- **Accessibility.** Touch targets and contrast were designed for, but no
+  screen-reader pass has been done.
+- **Service worker unverified on a real device** at time of writing.
+
+---
+
+## Credits and honesty
+
+Built by **Ugochukwu Odunukwe** for the Andela × OSF invention sprint.
+
+The concept, the problem framing and the product decisions are mine. The code
+was written with **Claude Code** as a pair, which the hackathon explicitly
+invites; commit history shows the collaboration rather than hiding it.
+Translations were AI-drafted and are marked in-source as needing a native
+speaker before real use.
