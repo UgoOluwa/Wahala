@@ -12,10 +12,17 @@ type Op = "+" | "-" | "x" | "/";
 function Calculator() {
   const router = useRouter();
   const params = useSearchParams();
-  const [display, setDisplay] = useState("0");
-  const [stored, setStored] = useState<number | null>(null);
-  const [op, setOp] = useState<Op | null>(null);
-  const [fresh, setFresh] = useState(true);
+  // One object rather than four useStates: taps arrive faster than React
+  // re-renders, and separate setters let a second digit read a stale `fresh`
+  // and overwrite the first instead of appending to it.
+  const [calc, setCalc] = useState<{
+    display: string;
+    stored: number | null;
+    op: Op | null;
+    fresh: boolean;
+  }>({ display: "0", stored: null, op: null, fresh: true });
+
+  const { display } = calc;
 
   // A judge should not have to hunt for the unlock, so the demo link carries it.
   useEffect(() => {
@@ -27,8 +34,11 @@ function Calculator() {
   }, [router]);
 
   function digit(d: string) {
-    setDisplay((cur) => (fresh || cur === "0" ? d : cur.length < 12 ? cur + d : cur));
-    setFresh(false);
+    setCalc((c) => ({
+      ...c,
+      display: c.fresh || c.display === "0" ? d : c.display.length < 12 ? c.display + d : c.display,
+      fresh: false,
+    }));
   }
 
   function apply(a: number, b: number, o: Op): number {
@@ -39,36 +49,54 @@ function Calculator() {
   }
 
   function equals() {
-    if (display === UNLOCK && stored === null) {
+    if (calc.display === UNLOCK && calc.stored === null) {
       router.push("/report");
       return;
     }
-    if (op === null || stored === null) return;
-    const result = apply(stored, Number(display), op);
-    setDisplay(Number.isFinite(result) ? String(Number(result.toFixed(8))) : "Error");
-    setStored(null);
-    setOp(null);
-    setFresh(true);
+    setCalc((c) => {
+      if (c.op === null || c.stored === null) return c;
+      const result = apply(c.stored, Number(c.display), c.op);
+      return {
+        display: Number.isFinite(result) ? String(Number(result.toFixed(8))) : "Error",
+        stored: null,
+        op: null,
+        fresh: true,
+      };
+    });
   }
 
   function chooseOp(next: Op) {
-    const value = Number(display);
-    setStored(stored !== null && op ? apply(stored, value, op) : value);
-    setOp(next);
-    setFresh(true);
+    setCalc((c) => {
+      const value = Number(c.display);
+      return {
+        ...c,
+        stored: c.stored !== null && c.op ? apply(c.stored, value, c.op) : value,
+        op: next,
+        fresh: true,
+      };
+    });
   }
 
   function clear() {
-    setDisplay("0");
-    setStored(null);
-    setOp(null);
-    setFresh(true);
+    setCalc({ display: "0", stored: null, op: null, fresh: true });
   }
 
   const keys: { label: string; action: () => void; tone?: "op" | "fn" }[] = [
     { label: "AC", action: clear, tone: "fn" },
-    { label: "±", action: () => setDisplay((d) => (d.startsWith("-") ? d.slice(1) : "-" + d)), tone: "fn" },
-    { label: "%", action: () => setDisplay((d) => String(Number(d) / 100)), tone: "fn" },
+    {
+      label: "±",
+      action: () =>
+        setCalc((c) => ({
+          ...c,
+          display: c.display.startsWith("-") ? c.display.slice(1) : "-" + c.display,
+        })),
+      tone: "fn",
+    },
+    {
+      label: "%",
+      action: () => setCalc((c) => ({ ...c, display: String(Number(c.display) / 100) })),
+      tone: "fn",
+    },
     { label: "÷", action: () => chooseOp("/"), tone: "op" },
     ...["7", "8", "9"].map((d) => ({ label: d, action: () => digit(d) })),
     { label: "×", action: () => chooseOp("x"), tone: "op" as const },
@@ -108,7 +136,9 @@ function Calculator() {
           0
         </button>
         <button
-          onClick={() => setDisplay((d) => (d.includes(".") ? d : d + "."))}
+          onClick={() =>
+            setCalc((c) => ({ ...c, display: c.display.includes(".") ? c.display : c.display + "." }))
+          }
           className="aspect-square rounded-2xl bg-raised text-2xl font-light transition-colors active:opacity-70"
         >
           .
