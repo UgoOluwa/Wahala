@@ -7,17 +7,20 @@ import { Chrome } from "@/components/Chrome";
 import { routeFor } from "@/lib/referrals";
 import { flush, onReconnect, smsHref } from "@/lib/transport";
 import type { Delivery, Report } from "@/lib/report";
+import type { StringKey } from "@/lib/i18n";
 
-function relative(ts: number): string {
+type Translate = (k: StringKey, p?: Record<string, string | number>) => string;
+
+function relative(ts: number, t: Translate): string {
   const mins = Math.round((Date.now() - ts) / 60000);
-  if (mins < 1) return "just now";
-  if (mins === 1) return "1 minute ago";
-  if (mins < 60) return `${mins} minutes ago`;
-  return `${Math.round(mins / 60)}h ago`;
+  if (mins < 1) return t("time.justNow");
+  if (mins === 1) return t("time.minute");
+  if (mins < 60) return t("time.minutes", { n: mins });
+  return t("time.hours", { n: Math.round(mins / 60) });
 }
 
 function Status() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const params = useParams<{ ref: string }>();
   const search = useSearchParams();
   const ref = params.ref;
@@ -60,7 +63,7 @@ function Status() {
   if (!report) {
     return (
       <Chrome showLanguages={false}>
-        <p className="pt-10 text-center text-muted">Loading…</p>
+        <p className="pt-10 text-center text-muted">{t("status.loading")}</p>
       </Chrome>
     );
   }
@@ -77,7 +80,7 @@ function Status() {
           <div className="flex items-center gap-2 pb-2">
             <span className="h-2 w-2 rounded-full bg-safe" />
             <span className="text-[11px] font-semibold uppercase tracking-widest text-safe">
-              {delivery === "sent" ? "Received" : "Saved"}
+              {delivery === "sent" ? t("status.receivedTag") : t("status.savedTag")}
             </span>
           </div>
           <p className="text-[15px] leading-relaxed">
@@ -85,7 +88,7 @@ function Status() {
           </p>
           <p className="pt-3 text-[13px] text-muted">
             {t("receipt.ref")} <span className="font-mono text-fg">{report.ref}</span> ·{" "}
-            {relative(report.createdAt)}
+            {relative(report.createdAt, t)}
           </p>
         </section>
 
@@ -105,26 +108,28 @@ function Status() {
             about that rather than faking activity. */}
         <section className="rounded-2xl border border-line bg-surface p-5">
           <p className="pb-3 text-[11px] font-semibold uppercase tracking-widest text-muted">
-            Response
+            {t("status.responseTag")}
           </p>
 
           {report.replies.length === 0 ? (
-            <p className="text-[15px] leading-relaxed text-muted">
-              No one has picked this up yet. This page updates itself — nothing will
-              ring or buzz.
-            </p>
+            <p className="text-[15px] leading-relaxed text-muted">{t("status.noResponse")}</p>
           ) : (
             <ul className="flex flex-col gap-4">
               {report.replies.map((r, i) => (
                 <li key={i} className="rise border-l-2 border-safe pl-4">
                   <p className="text-sm font-semibold">{r.agency}</p>
-                  <p className="pt-1 text-[15px] leading-relaxed">{r.message}</p>
+                  <p className="pt-1 text-[15px] leading-relaxed">
+                    {r.messageKey ? t(r.messageKey) : r.message}
+                  </p>
+                  {!r.messageKey && locale !== "en" && (
+                    <p className="pt-1 text-[12px] italic text-muted">{t("reply.untranslated")}</p>
+                  )}
                   {r.etaMinutes !== null && (
                     <p className="pt-2 text-sm font-medium text-safe">
-                      Expected with you in about {r.etaMinutes} minutes
+                      {t("status.eta", { n: r.etaMinutes })}
                     </p>
                   )}
-                  <p className="pt-1 text-[12px] text-muted">{relative(r.at)}</p>
+                  <p className="pt-1 text-[12px] text-muted">{relative(r.at, t)}</p>
                 </li>
               ))}
             </ul>
@@ -132,28 +137,28 @@ function Status() {
 
           {latest?.etaMinutes != null && (
             <p className="mt-4 rounded-lg bg-raised px-3 py-2 text-[13px] text-muted">
-              If no one reaches you by then, call 112 and quote {report.ref}.
+              {t("status.fallback", { ref: report.ref })}
             </p>
           )}
         </section>
 
         <section className="rounded-2xl border border-line bg-surface p-5">
           <p className="pb-3 text-[11px] font-semibold uppercase tracking-widest text-muted">
-            Who has this
+            {t("status.whoHas")}
           </p>
           <ul className="flex flex-col gap-3">
             {route.map((r) => (
               <li key={r.id}>
                 <p className="text-sm font-medium">{r.name}</p>
                 <p className="text-[13px] leading-relaxed text-muted">
-                  {r.remit} · {r.coverage}
+                  {t(r.remitKey)} · {t(r.coverageKey)}
                 </p>
                 {r.phone ? (
                   <a href={`tel:${r.phone}`} className="text-[13px] font-medium text-safe">
-                    Call {r.phone}
+                    {t("status.call", { phone: r.phone })}
                   </a>
                 ) : (
-                  <p className="text-[12px] text-muted/70">Hotline not verified in this prototype</p>
+                  <p className="text-[12px] text-muted/70">{t("status.unverified")}</p>
                 )}
               </li>
             ))}

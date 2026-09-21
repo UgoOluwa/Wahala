@@ -1,4 +1,4 @@
-import type { Locale } from "./i18n";
+import type { Locale, StringKey } from "./i18n";
 
 export const INCIDENTS = ["physical", "threat", "kidnap", "sexual", "followed", "other"] as const;
 export type Incident = (typeof INCIDENTS)[number];
@@ -15,6 +15,12 @@ export type Urgency = "immediate" | "considered";
 export interface Reply {
   at: number;
   agency: string;
+  /**
+   * A translation key, so the reply renders in whatever language the reporter
+   * filed in. A responder typing freehand cannot be translated offline, so that
+   * text travels in `message` instead and is labelled as English on arrival.
+   */
+  messageKey: StringKey | null;
   message: string;
   /** Minutes until help is expected on scene. Null when not yet committed to. */
   etaMinutes: number | null;

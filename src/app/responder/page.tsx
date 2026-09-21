@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { INCIDENTS, type Report } from "@/lib/report";
 import { routeFor } from "@/lib/referrals";
+import { LOCALE_NAMES, t, type StringKey } from "@/lib/i18n";
 
 const LABEL: Record<(typeof INCIDENTS)[number], string> = {
   physical: "Physical violence",
@@ -13,17 +14,22 @@ const LABEL: Record<(typeof INCIDENTS)[number], string> = {
   other: "Unspecified",
 };
 
-const CANNED = [
-  { message: "We have your location. A unit is on the way.", eta: 25 },
-  { message: "Received. We are trying to reach you on a safe channel.", eta: 45 },
-  { message: "A counsellor will contact you through this page.", eta: 120 },
+/**
+ * Canned replies travel as keys, not prose. The desk works in English; the
+ * person receiving it may not, and a reply they cannot read is not support.
+ */
+const CANNED: { key: StringKey; eta: number }[] = [
+  { key: "reply.located", eta: 25 },
+  { key: "reply.safeChannel", eta: 45 },
+  { key: "reply.counsellor", eta: 120 },
 ];
 
 export default function Responder() {
   const [reports, setReports] = useState<Report[]>([]);
   const [backend, setBackend] = useState("");
   const [active, setActive] = useState<string | null>(null);
-  const [message, setMessage] = useState(CANNED[0].message);
+  const [messageKey, setMessageKey] = useState<StringKey | null>(CANNED[0].key);
+  const [custom, setCustom] = useState("");
   const [eta, setEta] = useState<number | "">(CANNED[0].eta);
   const [busy, setBusy] = useState(false);
 
@@ -47,7 +53,8 @@ export default function Responder() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         agency: routeFor(reports.find((r) => r.ref === ref)!.incident)[0]?.name ?? "Response desk",
-        message,
+        messageKey,
+        message: messageKey ? t("en", messageKey) : custom,
         etaMinutes: eta === "" ? null : Number(eta),
       }),
     });
@@ -104,7 +111,9 @@ export default function Responder() {
                         </span>
                         <span className="font-semibold">{LABEL[r.incident]}</span>
                         <span className="font-mono text-[12px] text-muted">{r.ref}</span>
-                        <span className="text-[12px] uppercase text-muted">{r.locale}</span>
+                        <span className="rounded bg-raised px-2 py-0.5 text-[12px] text-muted">
+                          reads {LOCALE_NAMES[r.locale]}
+                        </span>
                       </div>
 
                       {r.description && (
@@ -113,7 +122,11 @@ export default function Responder() {
                       {r.involved && (
                         <p className="pt-1.5 text-sm text-muted">Involved: {r.involved}</p>
                       )}
-                      {r.when && <p className="text-sm text-muted">When: {r.when}</p>}
+                      {r.when && (
+                        <p className="text-sm text-muted">
+                          When: {t("en", r.when as StringKey)}
+                        </p>
+                      )}
 
                       {r.lat !== null && r.lon !== null ? (
                         <a
@@ -142,7 +155,9 @@ export default function Responder() {
                   {r.replies.map((reply, i) => (
                     <div key={i} className="mt-4 border-l-2 border-safe pl-4">
                       <p className="text-sm font-semibold">{reply.agency}</p>
-                      <p className="text-[15px]">{reply.message}</p>
+                      <p className="text-[15px]">
+                        {reply.messageKey ? t("en", reply.messageKey) : reply.message}
+                      </p>
                       {reply.etaMinutes !== null && (
                         <p className="text-sm text-safe">ETA {reply.etaMinutes} min</p>
                       )}
@@ -154,23 +169,59 @@ export default function Responder() {
                       <div className="flex flex-wrap gap-2">
                         {CANNED.map((c) => (
                           <button
-                            key={c.message}
+                            key={c.key}
                             onClick={() => {
-                              setMessage(c.message);
+                              setMessageKey(c.key);
                               setEta(c.eta);
                             }}
-                            className="rounded-full border border-line px-3 py-1.5 text-[13px] text-muted hover:text-fg"
+                            aria-pressed={messageKey === c.key}
+                            className={`rounded-full border px-3 py-1.5 text-[13px] ${
+                              messageKey === c.key
+                                ? "border-fg text-fg"
+                                : "border-line text-muted hover:text-fg"
+                            }`}
                           >
-                            {c.message.slice(0, 32)}…
+                            {t("en", c.key)}
                           </button>
                         ))}
+                        <button
+                          onClick={() => setMessageKey(null)}
+                          aria-pressed={messageKey === null}
+                          className={`rounded-full border px-3 py-1.5 text-[13px] ${
+                            messageKey === null
+                              ? "border-pending text-pending"
+                              : "border-line text-muted hover:text-fg"
+                          }`}
+                        >
+                          Write my own
+                        </button>
                       </div>
-                      <textarea
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        rows={2}
-                        className="resize-none rounded-lg border border-line bg-surface px-3 py-2 text-[15px] focus:outline-none"
-                      />
+                      {messageKey ? (
+                        <p className="rounded-lg border border-line bg-surface px-3 py-2 text-[15px]">
+                          {t(r.locale, messageKey)}
+                          {r.locale !== "en" && (
+                            <span className="block pt-1 text-[12px] text-muted">
+                              This is what they will read, in {LOCALE_NAMES[r.locale]}.
+                            </span>
+                          )}
+                        </p>
+                      ) : (
+                        <>
+                          <textarea
+                            value={custom}
+                            onChange={(e) => setCustom(e.target.value)}
+                            rows={2}
+                            placeholder="Typed replies cannot be translated."
+                            className="resize-none rounded-lg border border-pending/40 bg-surface px-3 py-2 text-[15px] focus:outline-none"
+                          />
+                          {r.locale !== "en" && (
+                            <p className="text-[12px] text-pending">
+                              This reporter reads {LOCALE_NAMES[r.locale]}. A typed reply
+                              reaches them in English and is labelled as such.
+                            </p>
+                          )}
+                        </>
+                      )}
                       <div className="flex flex-wrap items-center gap-3">
                         <label className="flex items-center gap-2 text-sm text-muted">
                           ETA (minutes)

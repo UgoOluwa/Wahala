@@ -11,6 +11,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ ref: st
   const reply: Reply = {
     at: Date.now(),
     agency: body.agency ?? "Response desk",
+    messageKey: body.messageKey ?? null,
     message: body.message ?? "",
     etaMinutes: typeof body.etaMinutes === "number" ? body.etaMinutes : null,
   };
