@@ -6,8 +6,9 @@ import { LocaleProvider, useLocale } from "@/components/LocaleProvider";
 import { Chrome } from "@/components/Chrome";
 import { routeFor } from "@/lib/referrals";
 import { guidanceFor } from "@/lib/guidance";
+import { alertHref, contacts, type Contact } from "@/lib/contacts";
 import { flush, onReconnect, smsHref } from "@/lib/transport";
-import type { Delivery, Report } from "@/lib/report";
+import { isLive, type Delivery, type Report } from "@/lib/report";
 import type { StringKey } from "@/lib/i18n";
 
 type Translate = (k: StringKey, p?: Record<string, string | number>) => string;
@@ -29,6 +30,22 @@ function Status() {
   const [local, setLocal] = useState<Report | null>(null);
   const [server, setServer] = useState<Report | null>(null);
   const [delivery, setDelivery] = useState<Delivery>((search.get("d") as Delivery) ?? "queued");
+  const [people, setPeople] = useState<Contact[]>([]);
+
+  useEffect(() => setPeople(contacts.all()), []);
+
+  // Drives the countdown. One second, because a dead-man's switch that appears
+  // frozen is one the person cannot trust to be counting at all.
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => tick((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  async function cancelArmed(ref: string) {
+    await fetch(`/api/reports/${ref}/cancel`, { method: "POST" });
+    await poll();
+  }
 
   useEffect(() => {
     const cached = sessionStorage.getItem(`hlp.report.${ref}`);
@@ -75,9 +92,45 @@ function Status() {
   const route = routeFor(report.incident);
   const latest = report.replies.at(-1);
 
+  const pending = Boolean(report.armedUntil) && !report.cancelled && !isLive(report);
+  const remaining = report.armedUntil ? Math.max(0, report.armedUntil - Date.now()) : 0;
+  const clock = `${Math.floor(remaining / 60000)}:${String(
+    Math.floor((remaining % 60000) / 1000),
+  ).padStart(2, "0")}`;
+
   return (
     <Chrome showLanguages={false}>
       <div className="flex flex-col gap-5 pt-2">
+        {pending && (
+          <section className="rise rounded-2xl border border-pending/40 bg-pending/5 p-5">
+            <p className="pb-2 text-[11px] font-semibold uppercase tracking-widest text-pending">
+              {t("arm.title")}
+            </p>
+            <p className="font-mono text-4xl font-semibold tabular-nums">{clock}</p>
+            <p className="pt-2 text-[14px] leading-relaxed text-muted">
+              {t("arm.armed", { t: clock })}
+            </p>
+            <button
+              onClick={() => cancelArmed(report.ref)}
+              className="tap mt-4 w-full rounded-xl bg-fg px-5 font-semibold text-ink"
+            >
+              {t("arm.cancel")}
+            </button>
+          </section>
+        )}
+
+        {report.cancelled && (
+          <section className="rise rounded-2xl border border-line bg-surface p-5">
+            <p className="text-[15px] leading-relaxed text-muted">{t("arm.cancelled")}</p>
+          </section>
+        )}
+
+        {report.armedUntil && !report.cancelled && isLive(report) && (
+          <p className="rounded-xl border border-danger/30 bg-danger-dim px-4 py-3 text-[14px]">
+            {t("arm.fired")}
+          </p>
+        )}
+
         {/* The receipt is the whole reassurance. It is silent and it is on screen,
             which is the only channel that is safe to use. */}
         <section className="rise rounded-2xl border border-safe/30 bg-safe/5 p-5">
@@ -116,6 +169,29 @@ function Status() {
               className="tap inline-flex items-center rounded-xl bg-pending px-5 font-semibold text-ink"
             >
               {t("cta.sms")}
+            </a>
+          </section>
+        )}
+
+        {people.length > 0 && report.lat !== null && report.lon !== null && (
+          <section className="rounded-2xl border border-line bg-surface p-5">
+            <p className="pb-2 text-[11px] font-semibold uppercase tracking-widest text-muted">
+              {t("contacts.alert")}
+            </p>
+            <p className="pb-3 text-[14px] leading-relaxed text-muted">
+              {t("contacts.alertBody", { n: people.length })}
+            </p>
+            <a
+              href={alertHref(
+                people,
+                t("contacts.smsBody", {
+                  url: `https://www.google.com/maps?q=${report.lat},${report.lon}`,
+                  ref: report.ref,
+                }),
+              )}
+              className="tap inline-flex items-center rounded-xl bg-fg px-5 font-semibold text-ink"
+            >
+              {t("contacts.alert")}
             </a>
           </section>
         )}

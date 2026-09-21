@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { INCIDENTS, type Report } from "@/lib/report";
+import { INCIDENTS, isLive, type Report } from "@/lib/report";
 import { routeFor } from "@/lib/referrals";
 import { LOCALE_NAMES, t, type StringKey } from "@/lib/i18n";
 
@@ -68,7 +68,8 @@ export default function Responder() {
     setRevealed(null);
   }
 
-  const open = reports.filter((r) => r.replies.length === 0);
+  const live = reports.filter((r) => isLive(r));
+  const open = live.filter((r) => r.replies.length === 0);
 
   return (
     <div className="min-h-dvh">
@@ -81,7 +82,8 @@ export default function Responder() {
             </p>
           </div>
           <p className="font-mono text-[12px] text-muted">
-            {open.length} awaiting · {reports.length} total · store: {backend}
+            {open.length} awaiting · {live.length} live · {reports.length} total · store:{" "}
+            {backend}
           </p>
         </div>
       </header>
@@ -115,6 +117,17 @@ export default function Responder() {
                           {r.urgency}
                         </span>
                         <span className="font-semibold">{LABEL[r.incident]}</span>
+                        {r.cancelled && (
+                          <span className="rounded-full bg-raised px-2 py-0.5 text-[11px] text-muted">
+                            cancelled by reporter
+                          </span>
+                        )}
+                        {!r.cancelled && r.armedUntil && !isLive(r) && (
+                          <span className="rounded-full bg-pending/15 px-2 py-0.5 text-[11px] text-pending">
+                            armed — fires{" "}
+                            {Math.max(0, Math.round((r.armedUntil - Date.now()) / 60000))}m
+                          </span>
+                        )}
                         <span className="font-mono text-[12px] text-muted">{r.ref}</span>
                         <span className="rounded bg-raised px-2 py-0.5 text-[12px] text-muted">
                           reads {LOCALE_NAMES[r.locale]}

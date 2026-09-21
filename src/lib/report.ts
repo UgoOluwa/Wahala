@@ -51,6 +51,21 @@ export interface Report {
    * their screen must not be able to fetch this alongside it.
    */
   callbackCode?: string;
+  /**
+   * A dead-man's switch. The report is registered with the server the moment it
+   * is armed, not when it fires — so it still goes out if the phone is taken,
+   * smashed or runs flat, which is the whole point for a kidnapping. A device
+   * timer would die with the device.
+   */
+  armedUntil?: number;
+  cancelled?: boolean;
+}
+
+/** Armed and un-cancelled reports become live once their deadline passes. */
+export function isLive(r: Report, now = Date.now()): boolean {
+  if (r.cancelled) return false;
+  if (!r.armedUntil) return true;
+  return now >= r.armedUntil;
 }
 
 export type Delivery = "sent" | "queued" | "sms";

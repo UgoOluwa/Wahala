@@ -8,6 +8,8 @@ import { getFix, type Fix } from "@/lib/geo";
 import { newCallbackCode, newRef, type Report } from "@/lib/report";
 import { send } from "@/lib/transport";
 
+const ARM_MINUTES = 10;
+
 export default function Immediate() {
   const { t, locale } = useLocale();
   const router = useRouter();
@@ -26,7 +28,7 @@ export default function Immediate() {
     });
   }, []);
 
-  async function fire() {
+  async function fire(armMinutes?: number) {
     if (sent.current) return;
     sent.current = true;
     setSending(true);
@@ -45,6 +47,7 @@ export default function Immediate() {
       createdAt: Date.now(),
       replies: [],
       callbackCode: newCallbackCode(),
+      armedUntil: armMinutes ? Date.now() + armMinutes * 60_000 : undefined,
     };
 
     const delivery = await send(report);
@@ -63,7 +66,7 @@ export default function Immediate() {
         {/* The button owns the thumb zone and nothing competes with it. */}
         <div className="flex flex-1 items-center justify-center py-10">
           <button
-            onClick={fire}
+            onClick={() => fire()}
             disabled={sending}
             aria-label={t("cta.help")}
             className="relative aspect-square w-56 rounded-full bg-danger text-lg font-semibold text-white shadow-[0_0_60px_-12px] shadow-danger/60 transition-transform active:scale-[0.97] disabled:opacity-70"
@@ -71,6 +74,23 @@ export default function Immediate() {
             {sending ? t("flow.sending") : t("cta.help")}
           </button>
         </div>
+
+        {/* Registered with the server the moment it is armed, so it survives the
+            phone being taken. */}
+        <button
+          onClick={() => fire(ARM_MINUTES)}
+          disabled={sending}
+          className="tap mb-3 w-full rounded-xl border border-pending/40 bg-pending/5 px-4 text-left disabled:opacity-60"
+        >
+          <span className="block py-3">
+            <span className="block text-sm font-semibold text-pending">
+              {t("arm.cta", { n: ARM_MINUTES })}
+            </span>
+            <span className="block pt-1 text-[13px] leading-relaxed text-muted">
+              {t("arm.body", { n: ARM_MINUTES })}
+            </span>
+          </span>
+        </button>
 
         <div className="rounded-xl border border-line bg-surface px-4 py-3 text-sm">
           <div className="flex items-center gap-2">
