@@ -7,7 +7,7 @@ import { Chrome } from "@/components/Chrome";
 import { routeFor } from "@/lib/referrals";
 import { guidanceFor } from "@/lib/guidance";
 import { alertHref, contacts, type Contact } from "@/lib/contacts";
-import { flush, onReconnect, smsHref } from "@/lib/transport";
+import { SMS_SHORTCODE, flush, onReconnect, smsHref } from "@/lib/transport";
 import { isLive, type Delivery, type Report } from "@/lib/report";
 import type { StringKey } from "@/lib/i18n";
 
@@ -163,7 +163,8 @@ function Status() {
 
         {delivery !== "sent" && (
           <section className="rounded-2xl border border-pending/30 bg-pending/5 p-5">
-            <p className="pb-3 text-[15px] leading-relaxed">{t("status.sms")}</p>
+            <p className="pb-2 text-[15px] leading-relaxed">{t("status.sms")}</p>
+            <p className="pb-3 font-mono text-[13px] text-muted">→ {SMS_SHORTCODE}</p>
             <a
               href={smsHref(report)}
               className="tap inline-flex items-center rounded-xl bg-pending px-5 font-semibold text-ink"

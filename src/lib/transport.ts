@@ -1,8 +1,15 @@
 import { outbox } from "./queue";
 import { encode, type Report, type Delivery } from "./report";
 
-/** The shortcode a real deployment would lease. 112 is the live national line. */
-export const SMS_SHORTCODE = "112";
+/**
+ * Where the fallback SMS is addressed. A real deployment sends to 112, the
+ * national emergency line — but a judged prototype gets tapped by people who
+ * are testing, and an accidental text to emergency services is a real cost to
+ * somebody. So the demo deployment overrides this with a safe number and the
+ * interface says which one it is pointing at.
+ */
+export const SMS_SHORTCODE = process.env.NEXT_PUBLIC_SMS_SHORTCODE ?? "112";
+export const SMS_IS_LIVE_EMERGENCY = SMS_SHORTCODE === "112";
 
 async function post(report: Report): Promise<boolean> {
   try {
