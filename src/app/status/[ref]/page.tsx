@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { LocaleProvider, useLocale } from "@/components/LocaleProvider";
 import { Chrome } from "@/components/Chrome";
 import { routeFor } from "@/lib/referrals";
+import { guidanceFor } from "@/lib/guidance";
 import { flush, onReconnect, smsHref } from "@/lib/transport";
 import type { Delivery, Report } from "@/lib/report";
 import type { StringKey } from "@/lib/i18n";
@@ -59,6 +60,9 @@ function Status() {
 
   useEffect(() => onReconnect(() => flush().then(poll)), [poll]);
 
+  // The server strips the callback code, so it can only come from the copy this
+  // device kept when the report was filed.
+  const callbackCode = local?.callbackCode;
   const report = server ?? local;
   if (!report) {
     return (
@@ -92,6 +96,18 @@ function Status() {
           </p>
         </section>
 
+        {callbackCode && (
+          <section className="rise rounded-2xl border border-line bg-surface p-5">
+            <p className="pb-2 text-[11px] font-semibold uppercase tracking-widest text-muted">
+              {t("verify.codeTitle")}
+            </p>
+            <p className="font-mono text-4xl font-semibold tracking-[0.2em] text-fg">
+              {callbackCode}
+            </p>
+            <p className="pt-3 text-[14px] leading-relaxed text-muted">{t("verify.codeBody")}</p>
+          </section>
+        )}
+
         {delivery !== "sent" && (
           <section className="rounded-2xl border border-pending/30 bg-pending/5 p-5">
             <p className="pb-3 text-[15px] leading-relaxed">{t("status.sms")}</p>
@@ -116,8 +132,23 @@ function Status() {
           ) : (
             <ul className="flex flex-col gap-4">
               {report.replies.map((r, i) => (
-                <li key={i} className="rise border-l-2 border-safe pl-4">
-                  <p className="text-sm font-semibold">{r.agency}</p>
+                <li
+                  key={i}
+                  // The bar carries the same verdict as the badge. A green rail
+                  // beside an "unverified" label is a mixed signal at the exact
+                  // moment the person is deciding whether to open a door.
+                  className={`rise border-l-2 pl-4 ${r.verified ? "border-safe" : "border-danger"}`}
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-semibold">{r.agency}</p>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                        r.verified ? "bg-safe/15 text-safe" : "bg-danger-dim text-danger"
+                      }`}
+                    >
+                      {r.verified ? t("verify.verified") : t("verify.unverified")}
+                    </span>
+                  </div>
                   <p className="pt-1 text-[15px] leading-relaxed">
                     {r.messageKey ? t(r.messageKey) : r.message}
                   </p>
@@ -140,6 +171,20 @@ function Status() {
               {t("status.fallback", { ref: report.ref })}
             </p>
           )}
+        </section>
+
+        <section className="rounded-2xl border border-line bg-surface p-5">
+          <p className="pb-3 text-[11px] font-semibold uppercase tracking-widest text-muted">
+            {t("safety.heading")}
+          </p>
+          <ol className="flex flex-col gap-3">
+            {guidanceFor(report.incident).map((key, i) => (
+              <li key={key} className="flex gap-3 text-[15px] leading-relaxed">
+                <span className="shrink-0 font-mono text-[13px] text-muted">{i + 1}</span>
+                <span>{t(key)}</span>
+              </li>
+            ))}
+          </ol>
         </section>
 
         <section className="rounded-2xl border border-line bg-surface p-5">
