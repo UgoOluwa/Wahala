@@ -26,13 +26,11 @@ export default function Triage() {
           <div className="flex items-center gap-2 pb-1.5">
             <span className="h-2 w-2 rounded-full bg-danger" />
             <span className="text-[11px] font-semibold uppercase tracking-widest text-danger">
-              Now
+              {t("triage.nowTag")}
             </span>
           </div>
-          <div className="text-lg font-semibold">I am in danger right now</div>
-          <p className="pt-1 text-sm leading-relaxed text-muted">
-            One tap. No typing, no questions. Your location goes with it.
-          </p>
+          <div className="text-lg font-semibold">{t("triage.immediateTitle")}</div>
+          <p className="pt-1 text-sm leading-relaxed text-muted">{t("triage.immediateBody")}</p>
         </Link>
 
         <Link
@@ -42,13 +40,11 @@ export default function Triage() {
           <div className="flex items-center gap-2 pb-1.5">
             <span className="h-2 w-2 rounded-full bg-muted" />
             <span className="text-[11px] font-semibold uppercase tracking-widest text-muted">
-              Report
+              {t("triage.reportTag")}
             </span>
           </div>
-          <div className="text-lg font-semibold">I want to report abuse</div>
-          <p className="pt-1 text-sm leading-relaxed text-muted">
-            Tell us what happened and who is involved. You will get a reply here.
-          </p>
+          <div className="text-lg font-semibold">{t("triage.detailedTitle")}</div>
+          <p className="pt-1 text-sm leading-relaxed text-muted">{t("triage.detailedBody")}</p>
         </Link>
       </div>
     </Chrome>

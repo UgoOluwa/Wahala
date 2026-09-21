@@ -1,4 +1,5 @@
 import type { Incident } from "./report";
+import type { StringKey } from "./i18n";
 
 /**
  * The track asks for a clear pathway to support, not just a place to shout. So a
@@ -13,8 +14,8 @@ import type { Incident } from "./report";
 export interface Referral {
   id: string;
   name: string;
-  remit: string;
-  coverage: string;
+  remitKey: StringKey;
+  coverageKey: StringKey;
   phone: string | null;
   verified: boolean;
 }
@@ -23,48 +24,48 @@ export const REFERRALS: Referral[] = [
   {
     id: "ng-112",
     name: "112 — National Emergency Number",
-    remit: "Police, fire and ambulance dispatch",
-    coverage: "Nationwide",
+    remitKey: "remit.ng112",
+    coverageKey: "coverage.national",
     phone: "112",
     verified: true,
   },
   {
     id: "naptip",
     name: "NAPTIP",
-    remit: "Trafficking, and offences under the VAPP Act",
-    coverage: "Nationwide",
+    remitKey: "remit.naptip",
+    coverageKey: "coverage.national",
     phone: null,
     verified: false,
   },
   {
     id: "mirabel",
     name: "Mirabel Centre",
-    remit: "Sexual assault referral — forensic care and counselling",
-    coverage: "Lagos (LASUTH, Ikeja)",
+    remitKey: "remit.mirabel",
+    coverageKey: "coverage.lagosIkeja",
     phone: null,
     verified: false,
   },
   {
     id: "warif",
     name: "WARIF",
-    remit: "Rape crisis response, medical and legal support",
-    coverage: "Lagos (Yaba)",
+    remitKey: "remit.warif",
+    coverageKey: "coverage.lagosYaba",
     phone: null,
     verified: false,
   },
   {
     id: "dsva",
     name: "Lagos DSVA",
-    remit: "Domestic and sexual violence response",
-    coverage: "Lagos State",
+    remitKey: "remit.dsva",
+    coverageKey: "coverage.lagosState",
     phone: null,
     verified: false,
   },
   {
     id: "nscdc",
     name: "NSCDC",
-    remit: "Civil defence, kidnapping and armed incident response",
-    coverage: "Nationwide",
+    remitKey: "remit.nscdc",
+    coverageKey: "coverage.national",
     phone: null,
     verified: false,
   },

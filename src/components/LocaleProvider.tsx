@@ -8,8 +8,8 @@ const KEY = "hlp.locale";
 const Ctx = createContext<{
   locale: Locale;
   setLocale: (l: Locale) => void;
-  t: (k: StringKey) => string;
-}>({ locale: "en", setLocale: () => {}, t: (k) => translate("en", k) });
+  t: (k: StringKey, params?: Record<string, string | number>) => string;
+}>({ locale: "en", setLocale: () => {}, t: (k, p) => translate("en", k, p) });
 
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("en");
@@ -30,7 +30,10 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(KEY, l);
   }, []);
 
-  const t = useCallback((k: StringKey) => translate(locale, k), [locale]);
+  const t = useCallback(
+    (k: StringKey, params?: Record<string, string | number>) => translate(locale, k, params),
+    [locale],
+  );
 
   return <Ctx.Provider value={{ locale, setLocale, t }}>{children}</Ctx.Provider>;
 }

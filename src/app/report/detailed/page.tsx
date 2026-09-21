@@ -10,7 +10,7 @@ import { send } from "@/lib/transport";
 import { routeFor } from "@/lib/referrals";
 import type { StringKey } from "@/lib/i18n";
 
-const WHEN = ["Happening now", "Today", "This week", "Earlier"];
+const WHEN = ["when.now", "when.today", "when.week", "when.earlier"] as const;
 
 export default function Detailed() {
   const { t, locale } = useLocale();
@@ -18,7 +18,7 @@ export default function Detailed() {
   const [incident, setIncident] = useState<Incident>("physical");
   const [description, setDescription] = useState("");
   const [involved, setInvolved] = useState("");
-  const [when, setWhen] = useState(WHEN[0]);
+  const [when, setWhen] = useState<(typeof WHEN)[number]>(WHEN[0]);
   const [shareLocation, setShareLocation] = useState(true);
   const [busy, setBusy] = useState(false);
 
@@ -43,6 +43,7 @@ export default function Detailed() {
       createdAt: Date.now(),
       description: description.trim() || undefined,
       involved: involved.trim() || undefined,
+      // Stored as a key so the responder desk can render it in its own language.
       when,
       replies: [],
     };
@@ -59,9 +60,7 @@ export default function Detailed() {
           <h1 className="text-2xl font-semibold tracking-tight">{t("incident.prompt")}</h1>
           {/* Asking for nothing that identifies the reporter is the point, so it
               is stated rather than left to be assumed. */}
-          <p className="pt-2 text-[15px] leading-relaxed text-muted">
-            No name, no phone number, no account. Only what you type below is sent.
-          </p>
+          <p className="pt-2 text-[15px] leading-relaxed text-muted">{t("form.privacy")}</p>
         </div>
 
         <fieldset className="flex flex-wrap gap-2">
@@ -83,28 +82,28 @@ export default function Detailed() {
         </fieldset>
 
         <label className="flex flex-col gap-2">
-          <span className="text-sm font-medium">What happened?</span>
+          <span className="text-sm font-medium">{t("form.what")}</span>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={5}
-            placeholder="Say as much or as little as you want."
+            placeholder={t("form.whatHint")}
             className="resize-none rounded-xl border border-line bg-surface px-4 py-3 text-[15px] leading-relaxed placeholder:text-muted/50 focus:border-muted focus:outline-none"
           />
         </label>
 
         <label className="flex flex-col gap-2">
-          <span className="text-sm font-medium">Who is involved?</span>
+          <span className="text-sm font-medium">{t("form.who")}</span>
           <input
             value={involved}
             onChange={(e) => setInvolved(e.target.value)}
-            placeholder="A name, or how you know them."
+            placeholder={t("form.whoHint")}
             className="tap rounded-xl border border-line bg-surface px-4 text-[15px] placeholder:text-muted/50 focus:border-muted focus:outline-none"
           />
         </label>
 
         <fieldset className="flex flex-col gap-2">
-          <span className="text-sm font-medium">When?</span>
+          <span className="text-sm font-medium">{t("form.when")}</span>
           <div className="flex flex-wrap gap-2">
             {WHEN.map((w) => (
               <button
@@ -118,7 +117,7 @@ export default function Detailed() {
                     : "border-line bg-surface text-muted hover:text-fg"
                 }`}
               >
-                {w}
+                {t(w)}
               </button>
             ))}
           </div>
@@ -132,10 +131,8 @@ export default function Detailed() {
             className="mt-0.5 h-5 w-5 accent-[#e5484d]"
           />
           <span className="text-sm leading-relaxed">
-            Send my location
-            <span className="block text-muted">
-              Turn this off if being located would put you in more danger.
-            </span>
+            {t("form.shareLocation")}
+            <span className="block text-muted">{t("form.shareLocationHint")}</span>
           </span>
         </label>
 
@@ -143,13 +140,13 @@ export default function Detailed() {
             shouting into the void and a pathway the person can see. */}
         <div className="rounded-xl border border-line bg-surface p-4">
           <p className="pb-2 text-[11px] font-semibold uppercase tracking-widest text-muted">
-            This goes to
+            {t("form.destination")}
           </p>
           <ul className="flex flex-col gap-1.5">
             {route.map((r) => (
               <li key={r.id} className="text-sm">
                 <span className="font-medium">{r.name}</span>
-                <span className="block text-[13px] text-muted">{r.remit}</span>
+                <span className="block text-[13px] text-muted">{t(r.remitKey)}</span>
               </li>
             ))}
           </ul>
