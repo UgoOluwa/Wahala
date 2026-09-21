@@ -47,6 +47,13 @@ export default function Triage() {
           <p className="pt-1 text-sm leading-relaxed text-muted">{t("triage.detailedBody")}</p>
         </Link>
       </div>
+
+      <Link
+        href="/report/contacts"
+        className="mt-5 block rounded-xl border border-line bg-surface px-5 py-4 text-sm text-muted transition-colors hover:text-fg"
+      >
+        {t("contacts.title")} →
+      </Link>
     </Chrome>
   );
 }

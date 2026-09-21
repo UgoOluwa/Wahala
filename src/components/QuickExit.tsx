@@ -1,6 +1,7 @@
 "use client";
 
 import { outbox } from "@/lib/queue";
+import { contacts } from "@/lib/contacts";
 
 /**
  * The single most important control in a covert flow. One tap has to leave
@@ -11,6 +12,7 @@ export function QuickExit({ label }: { label: string }) {
   async function bail() {
     try {
       await outbox.wipe();
+      contacts.wipe();
       localStorage.removeItem("hlp.locale");
       sessionStorage.clear();
     } catch {
