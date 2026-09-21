@@ -4,6 +4,7 @@ import Link from "next/link";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { QuickExit } from "./QuickExit";
 import { PrototypeBanner } from "./PrototypeBanner";
+import { OutboxBanner } from "./OutboxBanner";
 import { useLocale } from "./LocaleProvider";
 
 export function Chrome({
@@ -33,6 +34,8 @@ export function Chrome({
       </header>
 
       <main className="mx-auto w-full max-w-md flex-1 px-4 pb-10">{children}</main>
+
+      <OutboxBanner />
 
       {showLanguages && (
         <footer className="mx-auto w-full max-w-md px-4 pb-8 pt-2">
