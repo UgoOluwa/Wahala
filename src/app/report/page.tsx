@@ -1,0 +1,56 @@
+"use client";
+
+import Link from "next/link";
+import { Chrome } from "@/components/Chrome";
+import { useLocale } from "@/components/LocaleProvider";
+
+export default function Triage() {
+  const { t } = useLocale();
+
+  return (
+    <Chrome>
+      <h1 className="rise pb-1 pt-2 text-2xl font-semibold tracking-tight">
+        {t("incident.prompt")}
+      </h1>
+      <p className="rise pb-7 text-[15px] leading-relaxed text-muted">
+        {t("receipt.silent")}
+      </p>
+
+      <div className="flex flex-col gap-3">
+        {/* Immediate danger leads, and is visually heaviest, because the person
+            who needs it has the least attention to spare on reading. */}
+        <Link
+          href="/report/immediate"
+          className="rise group rounded-2xl border border-danger/40 bg-danger-dim p-5 transition-colors hover:border-danger"
+        >
+          <div className="flex items-center gap-2 pb-1.5">
+            <span className="h-2 w-2 rounded-full bg-danger" />
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-danger">
+              Now
+            </span>
+          </div>
+          <div className="text-lg font-semibold">I am in danger right now</div>
+          <p className="pt-1 text-sm leading-relaxed text-muted">
+            One tap. No typing, no questions. Your location goes with it.
+          </p>
+        </Link>
+
+        <Link
+          href="/report/detailed"
+          className="rise rounded-2xl border border-line bg-surface p-5 transition-colors hover:border-muted"
+        >
+          <div className="flex items-center gap-2 pb-1.5">
+            <span className="h-2 w-2 rounded-full bg-muted" />
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-muted">
+              Report
+            </span>
+          </div>
+          <div className="text-lg font-semibold">I want to report abuse</div>
+          <p className="pt-1 text-sm leading-relaxed text-muted">
+            Tell us what happened and who is involved. You will get a reply here.
+          </p>
+        </Link>
+      </div>
+    </Chrome>
+  );
+}
