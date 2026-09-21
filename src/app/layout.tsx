@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   // The tab title, the icon and the install name all stay innocuous. Anyone
   // scrolling the phone's recent-apps list should see arithmetic.
   robots: { index: false, follow: false },
+  manifest: "/manifest.webmanifest",
+  icons: { icon: "/icon-192.png", apple: "/apple-touch-icon.png" },
+  // Installed to a homescreen it must still say Calculator, not the app's name.
+  appleWebApp: { capable: true, title: "Calculator", statusBarStyle: "black-translucent" },
 };
 
 export const viewport: Viewport = {
