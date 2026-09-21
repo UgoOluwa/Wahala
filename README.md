@@ -5,6 +5,10 @@
 Built for the Andela × Open Society Foundations invention sprint, track 3:
 *Safety, Reporting & Protection*.
 
+**Live:** https://wahala-beta.vercel.app · **Judges can skip the unlock:**
+[/?open=1](https://wahala-beta.vercel.app/?open=1) · **Response desk:**
+[/responder](https://wahala-beta.vercel.app/responder)
+
 > **This is a prototype built for judging. It does not dispatch real help.**
 > In a real emergency in Nigeria, call **112**.
 
@@ -55,6 +59,22 @@ back button included — with an ordinary news site.
 
 **It speaks five languages.** English, Nigerian Pidgin, Yorùbá, Igbo and Hausa —
 every reporter-facing string, including the agency's reply.
+
+**You can tell a real responder from a fake one.** A reply saying help is
+coming is also a way to manipulate someone — *"we got your report, come
+outside"* is a luring technique, and in an abuse case the likeliest sender is
+the person being reported, who has the phone and can read the reference code
+off the screen. So the reporter gets a four-digit **callback code** when they
+file. A genuine responder has to quote it back, or their reply arrives visibly
+unverified. Four digits, because the check happens at a door or on a phone
+call — not in the app. The code is never returned over the reporter's polling
+endpoint, so reading their screen does not reveal it.
+
+**It tells you what to do while you wait.** Three concrete steps, chosen by
+incident, available offline in all five languages. During a kidnapping:
+conserve battery, keep the phone hidden, do not fight to keep it — the report
+has already gone. After a sexual assault: you can get medical care without
+making a police report first.
 
 **It closes the loop.** A responder acknowledges with an ETA: *"We have your
 location. A unit is on the way. ~25 minutes."* That reply renders in the
@@ -125,6 +145,8 @@ trusting.
 | | Status |
 |---|---|
 | Report capture, GPS, encoding, offline queue | **Real** |
+| Offline shell — verified on the deployment | **Real** |
+| Callback-code verification | **Real** |
 | Five-language interface | **Real** |
 | Calculator disguise, quick exit, silent updates | **Real** |
 | Referral routing logic | **Real** |
@@ -201,18 +223,16 @@ labelled as English — better than silently shipping something unreadable.
 
 Named rather than hidden, because they are the roadmap:
 
-- **Responder authenticity.** A reporter cannot yet verify that a reply is
-  genuine. For a tool in this category that is a real gap — a fake "we are
-  outside" could lure someone out.
 - **Trusted contacts.** In much of Nigeria a neighbour arrives before an agency
   does. Personal contacts should be a first-class destination.
-- **While-you-wait guidance.** The track says *protection*, and right now the
-  app reports but does not advise.
 - **No dead-man's switch.** "Send automatically if I do not cancel in ten
   minutes" is the right primitive for the kidnapping case.
 - **Accessibility.** Touch targets and contrast were designed for, but no
   screen-reader pass has been done.
-- **Service worker unverified on a real device** at time of writing.
+- **The desk is not authenticated.** It stands in for an agency system, so in
+  this prototype anyone who opens it can reveal a callback code. Real
+  deployment needs the desk behind a login before the verification means
+  anything against a determined attacker.
 
 ---
 
