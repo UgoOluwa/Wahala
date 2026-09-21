@@ -251,6 +251,29 @@ labelled as English — better than silently shipping something unreadable.
 
 ---
 
+## Taking it to another country
+
+Most of this is not Nigeria-shaped. A partner who can see your phone is
+universal; one bar of signal and no data is the norm across much of the
+continent rather than a local quirk; and a web app needs no app store's
+approval anywhere, which matters when the install itself has to be
+unremarkable.
+
+Concretely, what a new country needs:
+
+| | |
+|---|---|
+| Referral bodies | Data. `src/lib/referrals.ts` is a list plus an incident routing table. |
+| Languages | Data. A dictionary in `src/lib/i18n.ts`; the interface reads keys, never literals. |
+| Emergency number | **Partly hardcoded.** `NEXT_PUBLIC_SMS_SHORTCODE` sets the SMS target, but `112` is still written into roughly twenty translated sentences and is the calculator unlock. It should be an interpolated value like `{ref}` already is. |
+| Everything else | Unchanged. The transport ladder, the disguise, the callback code and the dead-man's switch assume nothing about where they are running. |
+
+So the honest position is that two of the three country-specific things are
+already configuration, and the third is a known, small piece of work rather
+than an architectural problem.
+
+---
+
 ## Known gaps
 
 Named rather than hidden, because they are the roadmap:
