@@ -16,8 +16,13 @@ export function QuickExit({ label }: { label: string }) {
     } catch {
       // Never let cleanup failure stop the escape.
     }
-    // replace(), not assign() — the back button must not walk back into it.
-    window.location.replace("https://www.bbc.com/pidgin");
+    // Back to the calculator rather than an outside site: an external page needs
+    // a network, and someone hitting this while offline would land on a browser
+    // error — conspicuous at exactly the wrong moment. The disguise is already
+    // here, and it loads instantly.
+    //
+    // replace(), not assign() — the back button must not walk into the report.
+    window.location.replace("/");
   }
 
   return (
